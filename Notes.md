@@ -73,3 +73,35 @@ Two ways of importing files
 
 - const express = require('express') ( CommonJS)
 - import express from 'express' (Module)
+- Kabhi kabhi issue ata hai to package.json mein jake 'type' key bana do ( module ya commonjs value ke saath)
+
+### CORS Issue
+
+- Ya to whitelist kardo backend mein
+- Ya proxy laga do - wo har bundler ke liye alag step hoga 
+- proxy kya karta hai 
+
+```jsx
+
+server: {
+    proxy: {
+      '/api' : 'http://localhost:4000'
+    }
+  }
+
+- agar koi request /api se shuru hoti hai to uske age automatically http://localhost:4000 ye  lag jaega
+- to server ko lagega ki ye to same origin se request a rhi hai to data de dega
+
+- Hamara backend runs on port 4000 and frontend on 3000
+
+Browser Request: http://localhost:4000/api/users
+    ↓
+Proxy Intercepts: "Aha! '/api' dekha!"
+    ↓
+Redirects to: http://localhost:4000/api/users
+    ↓
+Backend Response: JSON data
+    ↓
+Proxy Returns: Same data to frontend
+
+```
