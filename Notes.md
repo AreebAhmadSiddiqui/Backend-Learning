@@ -168,3 +168,11 @@ createdBy: {
     }
 ```
 
+
+# Lession 4 ( Mega Project Starts )
+
+- to push empty folders to git use .gitkeep(an empty file) inside the folder
+- nodemon - server ko restart kr deta hai changes mein
+- lekin use nodemon as dev dependency ( production mein ni jaega)
+- 
+
