@@ -105,3 +105,66 @@ Backend Response: JSON data
 Proxy Returns: Same data to frontend
 
 ```
+
+# Lession 3 ( How backend is started? )
+
+- Sabse pehle data kaise store ho rha hai backend mein uski chinta karo
+- sketch out the fields you want in your db ( frontend wagerah ban jaega )
+- Sabse pehle data modelling karo
+
+![data-model](./images/data-model.png.png)
+
+- Ise data ko model karne ke liye **mongooses** use karte
+
+#### Data Modelling best practices
+
+- Create a models folder 
+- Then create a folder for your model
+- Then Create a model using this naming convention (model_name.models.js) not compulsory but good to write like this
+
+
+```javascript
+// Step 1 import mongoose
+import mongoose from "mongoose";
+
+// Step 2 create a schema
+const userSchema = new mongoose.Schema({})
+
+// Step 3 export this schema ( create a model)
+export const User=mongoose.model("User",userSchema)
+```
+
+- **Note : mongoDB mein users naam se store hoga ( lowercase + s lag jata hai)**
+
+
+### Foreign key reference in mongoose
+
+```jsx
+createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
+    subTodos: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'SubTodo'
+        }
+    ]// Array of subtodos
+```
+
+### Images
+
+- Store them somewhere in the cloud and get the url
+- you can store images directly too but not recommended
+
+### Agar limited options chahiye
+
+```jsx
+// Limited options
+    status:{
+        type: String,
+        enum: ['PENDING',"CANCELLED","DELIVERED"],
+        default: 'PENDING'
+    }
+```
+
