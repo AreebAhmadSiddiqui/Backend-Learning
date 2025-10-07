@@ -172,7 +172,9 @@ createdBy: {
 # Lession 4 ( Mega Project Starts )
 
 - to push empty folders to git use .gitkeep(an empty file) inside the folder
-- nodemon - server ko restart kr deta hai changes mein
+- **nodemon** - server ko restart kr deta hai changes mein
 - lekin use nodemon as dev dependency ( production mein ni jaega)
-- 
+- **Prettier** - Ye common syntax bana deta hai code ka , jaise single qutoe use ni honge, spaces two tabs ki hongi etc etc
+- Jisse team same page pe rahti hai
+- create two files .prettierrc ( config file) and .prettierignore ( files where you dont want prettier to do anything (Ex- node modules , .env etc))
 
