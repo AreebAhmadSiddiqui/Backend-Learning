@@ -2,10 +2,22 @@
 
 import dotenv from 'dotenv'
 import connectDB from './db/index.js'
+import app from './app.js'
 
 dotenv.config({ path: './.env' })
 
+// async await function hamesha return value promise mein wrap karke bhejta hai
 connectDB()
+.then(()=>{
+    const port=process.env.PORT || 8000
+    app.listen(port, ()=>{
+        console.log(`Server is listening on Port ${port}`);
+    })
+})
+.catch((err)=>{
+    console.log('DB connection error',err);
+})
+
 
 
 // APPROACH 1

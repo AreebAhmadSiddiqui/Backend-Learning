@@ -259,3 +259,31 @@ connectDB()
 
 - dotenv ko sabse pehle load karo jaise kiya hai
 - path de do ki kahan se env lena
+
+
+### Setting Configurations 
+
+- we use app.use() for middlewares and any cofigurations modification
+- async await hamesha return value promise mein wrap karke return karta hai
+- **Setting up cors**
+
+    // **app.use(cors())** // kaam to ho gaya lekin aur bhi options hote hai
+    app.use(cors({
+        origin: process.env.CORS_ORIGIN,
+        credentials: true
+    }))
+
+- **Adding configurations** 
+    1. ( Data multiple source se aega isliye kuch settings banaenge)
+    2. Rate limiting bhi add karenge
+    3. **express.json()** middleware request body mein se JSON data parse karta hai 
+    4. URL se data ( URL mein cheezein badalte rahte hai //, %20 for space etc to in sab ko encode karke batana padta hai)
+    **app.use(express.urlencoded({extended:true,limit:'16kb'}))**
+    
+        ismein extended ki madad se obj ke andar obj bhej paenge
+    aur limit to samjh gae hoge
+
+    5. For static files like favicon,img jo main apne server mein hi store karna chahta hun
+    **app.use(express.static("public"))**
+    
+        yaad karo public folder banaya hai isliye banaya hai
