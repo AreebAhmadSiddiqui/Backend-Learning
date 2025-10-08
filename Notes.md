@@ -112,7 +112,7 @@ Proxy Returns: Same data to frontend
 - sketch out the fields you want in your db ( frontend wagerah ban jaega )
 - Sabse pehle data modelling karo
 
-![data-model](./images/data-model.png.png)
+![data-model](./images/data-model.png)
 
 - Ise data ko model karne ke liye **mongooses** use karte
 
@@ -178,3 +178,84 @@ createdBy: {
 - Jisse team same page pe rahti hai
 - create two files .prettierrc ( config file) and .prettierignore ( files where you dont want prettier to do anything (Ex- node modules , .env etc))
 
+### DB connectivity
+
+TWO MOST IMPORTANT THINGS TO NOTE
+
+- DB operations should always be wrapped inside **try catch**
+- DB is another continent so use **async await** ( basically treat it as asynchronous code)
+
+Two ways of connecting
+
+1) first file mein jo load hogi ( index app whatever usi mien db connect kardo)
+
+```javascript
+';' kyun JS ko batane ke liye semicolon ke baad naya cheeze shuru hui hai
+agar ni hota to isse ata read karna ho to notes padhna wahan hai iska concept
+
+- Han function banake function ko call bhi kar sakte ho iife agar na use karna ho
+
+;(async () => {
+    try {
+        await mongoose.connect(`${process.env.MONGODB_URL}/${DB_NAME}`)
+        app.on('error',(error)=>{
+            console.log("APP not able to talk to mongo ERROR: ",error);
+            throw error
+        })
+
+        app.listen(process.env.PORT, ()=>{
+            console.log(`App is listening on port ${PORT}`)
+        })
+    } catch (error) {
+        console.log("Error:",error);
+        throw error
+    }
+})()
+
+
+```
+
+2. Alag db folder banake usmein se karo jo karna hai
+
+```javascript
+
+dbConnection.js
+
+import mongoose from "mongoose";
+import { DB_NAME } from "../constants.js";
+
+
+const connectDB = async () =>{
+    try {
+        const connectionInstance=await mongoose.connect(`${process.env.MONGODB_URL}/${DB_NAME}`)
+
+        // console.log(connectionInstance);
+        
+        console.log(`\n MongoDB connected !! DB Host ${connectionInstance.connection.host}`);
+        
+    } catch (error) {
+        console.log("MONGODB connection error",error);
+        throw error
+
+        // or you can use process.exit(1)
+    }
+}
+
+export default connectDB
+
+index.js
+
+// require('dotenv').config({path: './env'})
+
+import dotenv from 'dotenv'
+import connectDB from './db/index.js'
+
+dotenv.config({ path: './.env' })
+
+connectDB()
+```
+
+**NOTE:**
+
+- dotenv ko sabse pehle load karo jaise kiya hai
+- path de do ki kahan se env lena
