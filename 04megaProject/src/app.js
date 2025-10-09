@@ -1,6 +1,6 @@
 import express from 'express'
 import cors from 'cors'
-import cookieParse from 'cookie-parser'
+import cookieParser from 'cookie-parser'
 
 const app = express()
 
@@ -21,5 +21,9 @@ app.use(express.urlencoded({extended:true,limit:'16kb'}))
 
 // for static files like favicon,img jo main apne server mein hi store karna chahta hun
 app.use(express.static("public"))
+
+
+// for performing crud operations on the users cookies
+app.use(cookieParser())
 
 export default app

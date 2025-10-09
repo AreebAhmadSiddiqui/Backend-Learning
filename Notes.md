@@ -287,3 +287,38 @@ connectDB()
     **app.use(express.static("public"))**
     
         yaad karo public folder banaya hai isliye banaya hai
+    6. cookiParser is used to perform CRUD operations on the cookies of the user's browser
+    **app.use(cookieParser)**
+
+
+### Middlewares
+
+- Middleware ek aisa "bridge" ya "gatekeeper" hota hai jo request aane se pehle aur response jaane se pehle beech ka kaam karta hai.
+
+Socho aap ek restaurant mein order de rahe ho:
+
+Normal Flow:
+
+- Aap order karte ho (Client Request)
+- Waiter kitchen mein order lekar jaata hai
+- Chef khana banata hai (Server Process)
+
+- Waiter khana laake deta hai (Server Response)
+
+Middleware wala Flow:
+
+- Aap order karte ho (Request)
+
+Waiter check karta hai:
+
+- Kya aapne table book kiya hai? (Authentication Middleware)
+- Kya aap VIP customer ho? (Authorization Middleware)
+- Kya order sahi format mein hai? (Validation Middleware)
+- Order ko notepad mein likhta hai (Logging Middleware)
+- Fir hi kitchen mein order bhejta hai
+
+Khana banne ke baad bhi waiter:
+
+- Presentation check karta hai (Formatting Middleware)
+- Bill add karta hai (Processing Middleware)
+- Tab jaake khana aapko milta hai (Response)
