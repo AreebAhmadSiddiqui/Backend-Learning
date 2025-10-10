@@ -72,25 +72,32 @@ userSchema.methods.isPasswordCorrect=async function(password){
 // Tokens Generation
 
 userSchema.methods.generateAccessToken = function(){
-    return jwt.sign({
-        _id: this._id,
-        email: this.email,
-        username: this.username,
-        fullName:this.fullName
-    },
-    process.env.ACCESS_TOKEN_SECRET,
-    {
-        expiresIn: process.env.ACCESS_TOKEN_EXPIRY
-    }
-)
+    return jwt.sign(  // ✅ JWT token generate karta hai
+        // PAYLOAD (Data that will be stored in token)
+        {
+            _id: this._id,        // Current user ki ID
+            email: this.email,     // Current user ka email  
+            username: this.username, // Current user ka username
+            fullName: this.fullName  // Current user ka full name
+        },
+        // SECRET KEY (Signature verify karne ke liye)
+        process.env.ACCESS_TOKEN_SECRET,
+        // OPTIONS
+        {
+            expiresIn: process.env.ACCESS_TOKEN_EXPIRY // Token expiry time
+        }
+    )
 }
 
-userSchema.methods.generateRefreshToken= function(){
+userSchema.methods.generateRefreshToken = function(){
     return jwt.sign(
+        // PAYLOAD (Minimal data)
         {
-            _id: this._id,
+            _id: this._id,  // Sirf user ID
         },
+        // DIFFERENT SECRET KEY  
         process.env.REFRESH_TOKEN_SECRET,
+        // LONGER EXPIRY
         {
             expiresIn: process.env.REFRESH_TOKEN_EXPIRY
         }
