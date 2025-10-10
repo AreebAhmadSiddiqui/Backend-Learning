@@ -514,3 +514,91 @@ app.get('/api', (req, res) => {
 - Redirection messages (300 – 399)
 - Client error responses (400 – 499)
 - Server error responses (500 – 599)
+
+
+### User and Video Model
+
+- for enabling searching field in an optimised way use this {index: true} in model
+- **bcrypt** used for hasing password
+- **JSON web token** - crypto graphy ke madad se token ban jata hai
+- Mongoose hame kai hook deta hai jaise pre etc 
+- iska matlab data ke sath kuch hone se just pehle ye kardo
+- hamare case mein data save hone se pehle pass hash kardo
+
+```jsx
+
+📄 DOCUMENT HOOKS
+Pre Hooks:
+javascript
+schema.pre('save', function(next) { })
+schema.pre('validate', function(next) { })
+schema.pre('remove', function(next) { })
+schema.pre('deleteOne', function(next) { })
+Post Hooks:
+javascript
+schema.post('save', function(doc, next) { })
+schema.post('validate', function(doc, next) { })
+schema.post('remove', function(doc, next) { })
+schema.post('deleteOne', function(doc, next) { })
+🔍 QUERY HOOKS
+Pre Hooks:
+javascript
+schema.pre('find', function(next) { })
+schema.pre('findOne', function(next) { })
+schema.pre('findById', function(next) { })
+schema.pre('findOneAndUpdate', function(next) { })
+schema.pre('findOneAndDelete', function(next) { })
+schema.pre('updateOne', function(next) { })
+schema.pre('updateMany', function(next) { })
+schema.pre('deleteMany', function(next) { })
+schema.pre('count', function(next) { })
+schema.pre('countDocuments', function(next) { })
+Post Hooks:
+javascript
+schema.post('find', function(docs, next) { })
+schema.post('findOne', function(doc, next) { })
+schema.post('findById', function(doc, next) { })
+schema.post('findOneAndUpdate', function(doc, next) { })
+schema.post('findOneAndDelete', function(doc, next) { })
+schema.post('updateOne', function(result, next) { })
+schema.post('updateMany', function(result, next) { })
+schema.post('deleteMany', function(result, next) { })
+📊 AGGREGATE HOOKS
+javascript
+schema.pre('aggregate', function(next) { })
+schema.post('aggregate', function(result, next) { })
+🏢 MODEL HOOKS
+javascript
+schema.pre('insertMany', function(next, docs) { })
+schema.post('insertMany', function(docs, next) { })
+
+```
+
+**Note**: Tumne notice kiya hoga ki ham yahan normal function likh rhe arrow function ni  ( kyunki hame this ka access chahiye aur arrow function mein to this ka issue hota hai)
+
+### JWT ( Refresh and Access token)
+
+- Ye dono use karte hai  ( dono JWT hi hai bas use different hai)
+- Access token jo hai uski expiry kam hoti hai
+- Refresh token ki expiry lambi hoti hai
+- We create Key and expiry in env
+- Ab access token generateKarne ka function bhi bana lo models mein
+
+```jsx
+
+TOKEN AISA HOTA HAI
+
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30
+
+aur decoded value
+
+{
+  "sub": "1234567890",
+  "name": "John Doe",
+  "admin": true,
+  "iat": 1516239022
+}
+
+
+
+```
