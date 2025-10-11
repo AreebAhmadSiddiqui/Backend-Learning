@@ -688,3 +688,9 @@ aur decoded value
 Basic set of operations that can be use to interact with server. Some methods
 
 ![http-methods](/images/http-methods.png)
+
+# Video 13 ( Routes and Controller )
+
+- Controllers hai sirf logic logic logic
+- Routes ham production mein app.js mein likhte hai 
+- ham app mein app.get/post ni lihenge ab ai to ab middleware ka use karenge aur app.use likhenge
