@@ -625,3 +625,66 @@ aur decoded value
 - middleware kahta hai jab bhi jana mujhse milke jana
 - Ham multer mein disk storage use kar rhe hai lekin memory storage ka bhi option hai
 - But memory bhar sakti hai jaldi isliye we dont use that option
+
+
+# Video 12 ( HTTP )
+
+- Hyper Text Transfer Protocol
+- HTTPs vs HTTP ( HTTPs mein data encrypt hoke jata hai , aur HTTP mein simple plain text jata hai)
+- URI,URL,URN
+
+**HTTP Headers**
+
+- metadata ( Data ka data ) -> key-value pairs sent along with request and response
+- Some headers - caching, authentication, manage state
+
+- Request Headers -> from Client
+- Response Headers -> from server
+- Representation Headers -> encoding/compression
+- Payload Headers -> data
+
+```jsx
+🎯 HTTP Status Codes (Server Responses):
+
+1xx - Information (Process Chal Raha Hai):
+
+100 Continue - "Order sun liya, bhejta rah"
+101 Switching Protocols - "Language change kar raha hun"
+102 Processing - "Order pak raha hai, thoda time lagega"
+103 Early Hints - "Ye cheeze pehle se ready rakh lo"
+
+
+2xx - Success (Sab thik hai):
+
+200 OK - "Order mil gaya"
+201 Created - "Naya order create ho gaya" 
+204 No Content - "Order complete, kuch return nahi"
+
+3xx - Redirection (Idhar udhar bhejna):
+
+301 Moved Permanently - "Dukaan shift ho gayi"
+302 Found - "Temporarily dusre address pe"
+304 Not Modified - "Cache mein same hai, naya nahi lao"
+
+4xx - Client Error (Customer ki galti):
+
+400 Bad Request - "Galat order format"
+401 Unauthorized - "Pehle login karo"
+403 Forbidden - "Permission nahi hai"
+404 Not Found - "Item nahi mila"
+429 Too Many Requests - "Itne orders mat karo"
+
+5xx - Server Error (Server ki galti):
+
+500 Internal Server Error - "Kitchen mein problem hai"
+502 Bad Gateway - "Server baat nahi kar pa raha"
+503 Service Unavailable - "Server busy hai"
+```
+![headers-http](/images/headers-http.png)
+
+
+### HTTP Methods
+
+Basic set of operations that can be use to interact with server. Some methods
+
+![http-methods](/images/http-methods.png)
