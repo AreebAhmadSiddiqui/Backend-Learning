@@ -694,3 +694,23 @@ Basic set of operations that can be use to interact with server. Some methods
 - Controllers hai sirf logic logic logic
 - Routes ham production mein app.js mein likhte hai 
 - ham app mein app.get/post ni lihenge ab ai to ab middleware ka use karenge aur app.use likhenge
+
+# Video 14 ( Register User Logic)
+
+- Steps 
+    - get user details from frontend ( postman in our case)
+    - validation ( VV imporant ) - not empty ek example
+    - check if user already exists : username, email
+    - check if images,check for avatar
+    - upload to cloudinary , check for avatar for sure
+    - get the url
+    - create user object - and create entry in the db
+    - remove password and refresh token field from response and give it back to frontend
+    - check for user creation is successful or not ( properly create hua ki ni)
+    - return res
+
+- Actual Code
+    - Get the data from req body
+    - use multer code in routes for inputting the files
+    - multer hame req.files ka option de deta hai
+    - 
