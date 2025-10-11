@@ -576,9 +576,12 @@ schema.post('insertMany', function(docs, next) { })
 
 **Note**: Tumne notice kiya hoga ki ham yahan normal function likh rhe arrow function ni  ( kyunki hame this ka access chahiye aur arrow function mein to this ka issue hota hai)
 
-### JWT ( Refresh and Access token)
+### Video 10 - JWT ( Refresh and Access token)
 
-- Ye dono use karte hai  ( dono JWT hi hai bas use different hai)
+- JWT is a "Bearer Token" ka matlab hai: "Jis ke paas ye token hai, usi ko access milega"
+- Jaise: "Jis ke paas train ticket hai, wahi train mein baith sakta hai"
+
+- Refresh and Access token Ye dono use karte hai  ( dono JWT hi hai bas use different hai)
 - Access token jo hai uski expiry kam hoti hai
 - Refresh token ki expiry lambi hoti hai
 - We create Key and expiry in env
@@ -599,6 +602,26 @@ aur decoded value
   "iat": 1516239022
 }
 
-
-
 ```
+# Video 11 ( File Upload )
+
+- File handling apne servers par ni kari jati normally 
+- External services use hoti hai production mein
+- Cloudinary use kar rhe hai ham 
+- fir **express-fileuload** ya fir **multer** se ham file operations kar sakte hai
+
+### Cloudinary
+- Steps of File Upload
+    - Ham user se file lene using multer and store them in our local server
+    - after that with the help of cloudinary we will take that file and upload on the cloudinary's server
+    - Why this two steps??
+    - // Pehle local mein check kar sakte hain
+    - // Agar Cloudinary upload fail ho to retry kar sakte hain
+    - // Local file pe extra processing kar sakte hain
+
+
+### Multer
+- multer servers as a middleware here aur jab bhi aisa upload wala kuch hoga to we will use it
+- middleware kahta hai jab bhi jana mujhse milke jana
+- Ham multer mein disk storage use kar rhe hai lekin memory storage ka bhi option hai
+- But memory bhar sakti hai jaldi isliye we dont use that option
