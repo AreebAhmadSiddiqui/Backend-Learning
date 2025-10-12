@@ -1,5 +1,11 @@
 # Lession 1 ( What is backend? )
 
+
+- Jab tum return default karke bhejto ho to koi bhi naam se accept kar sakte ho aur import {} lagane ke zarurat ni lekin agar kisi aur tareqe ser return karte ho to lagan padega
+- Default Export: export default variable → Import with any name, no {}  ( Ham default tb karte hai jab sara bhejna ho content to seedhe kisi bhi naam se import kar sakte)
+- Named Export: export const variable → Import with exact name, must use {}  ( is case mein ham kai varibales ya function export karte hai to unhe {} destructure karna hi padega )
+
+- Import x from 'y' ka matlab hai saara y de do as x, import {x} from 'y' -> y se x lake do sirf
 - Backend development woh kaam hai jo website ya app ke "parde ke peeche" (behind the curtains) hota hai. Jab aap koi app use karte hain, jo kuch bhi aapko dikhta nahi hai, par kaam karwata hai, woh sab backend hai.
 
 - Jaise Sochiye: Aap Zomato app kholte ho. Aapko restaurants dikhte hain, menu dikhta hai. Yeh sab Frontend hai (jo aap dekhte ho).
