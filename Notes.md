@@ -719,4 +719,10 @@ Basic set of operations that can be use to interact with server. Some methods
     - Get the data from req body
     - use multer code in routes for inputting the files
     - multer hame req.files ka option de deta hai
-    - 
+    - uske baad poora algorithm follow karo user controller main
+
+# Video 15 ( Setup Postman )
+
+- Collection banake kaam karte hai
+- Environment variable bana lo jaise ki maine url ka banaya because wo common hai har request mein
+- Folder structure banake use karna for professional use

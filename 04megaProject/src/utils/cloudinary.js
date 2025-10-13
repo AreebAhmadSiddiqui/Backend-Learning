@@ -2,9 +2,15 @@
 // Use fir cloudinary mein dalo
 // Agar success to local file delete karo
 
+import dotenv from "dotenv";
+dotenv.config({
+   path: "./.env"     
+});
 
 import {v2 as cloudinary} from 'cloudinary'
 import fs from 'fs' // node js file system se baat karne ke liye 
+
+
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -13,28 +19,32 @@ cloudinary.config({
 })
 
 const uploadOnCloudinary = async (localFilePath) =>{
-    try{
-        if(!localFilePath) return null
+    
+    try {
+        if (!localFilePath) return null
 
-        // upload file on cloudinary
-        const response = await cloudinary.v2.uploader.upload(localFilePath,
-        {resource_type:"auto"},
-        function(error,result){
-            console.log(result)
+        //upload the file on cloudinary
+        const response = await cloudinary.uploader.upload(localFilePath, {
+            resource_type: "auto"
         })
 
-        console.log('File uploaded on cloudinary',response.url);
-        return response;
-    }catch(err){
-        // remove file from our local server( Unlink the locally saved temp file as the upload ope got failed)
-
+        // console.log(response);
+    
+        // file has been uploaded successfull
+        //console.log("file is uploaded on cloudinary ", response.url);
         fs.unlinkSync(localFilePath)
-        return null
+        return response;
+
+    } catch (error) {
+        console.log('error check in cloudinary',error);
+        
+        fs.unlinkSync(localFilePath) // remove the locally saved temporary file as the upload operation got failed
+        return null;
     }
 }
 
 
-export default uploadOnCloudinary;
+export {uploadOnCloudinary};
 
 // cloudinary.v2.uploader.upload("local file path",
 //     {public_id: 'olympic_flag'},
