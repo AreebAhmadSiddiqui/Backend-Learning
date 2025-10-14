@@ -125,7 +125,7 @@ const loginUser = asyncHandler( async (req,res)=>{
     // - req body se data lo
     const {email,username,password}=req.body
 
-    if(!username || !email) throw new ApiError(400,"username or email is required")
+    if(!username && !email) throw new ApiError(400,"username or email is required")
 
 
     // - username or email se find karo user
@@ -202,7 +202,7 @@ const logoutUser = asyncHandler( async (req,res)=>{
     );
 
     // What does new do
-    console.log(updatedUser);
+    // console.log(updatedUser);
     // Output: { _id: "123", name: "John", email: "john@example.com" }
     // ❌ refreshToken field nahi hogi
 
