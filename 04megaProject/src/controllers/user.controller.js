@@ -4,6 +4,30 @@ import { ApiResponse } from '../utils/ApiResponse.js';
 import {asyncHandler} from '../utils/asyncHandler.js'
 import {uploadOnCloudinary} from '../utils/cloudinary.js';
 
+
+// Generate access and refreshtoken
+
+const generateAccessAndRefreshToken = async ( userId) => {
+    try{
+        const user = await User.findById(userId)
+        const accessToken=user.generateAccessToken()
+        const refreshToken=user.generateRefreshToken()
+
+        // save the refresh token to db
+        user.refreshToken=refreshToken
+
+        // Isse koi validation ni hoga seedha jake save ho jaega
+        await user.save({validateBeforeSave: false})
+
+        return {accessToken,refreshToken}
+
+
+    }catch(error){
+        throw new ApiError(500,"Something went wrong while generating refresh and access token")
+    }
+}
+
+// Register User
 const registerUser = asyncHandler( async (req,res)=>{
     // res.status(200).json({
     //     message:'areeb ahmad'
@@ -95,4 +119,107 @@ const registerUser = asyncHandler( async (req,res)=>{
 
 })
 
-export default registerUser
+// Login User
+const loginUser = asyncHandler( async (req,res)=>{
+
+    // - req body se data lo
+    const {email,username,password}=req.body
+
+    if(!username || !email) throw new ApiError(400,"username or email is required")
+
+
+    // - username or email se find karo user
+    const user = await User.findOne({
+        $or: [{username},{email}]
+    })
+
+    if(!user) throw new ApiError(404,"User doesn't exist")
+
+    // - password check karo
+    const isPassValid= await user.isPasswordCorrect(password)
+    if(!isPassValid)  throw new ApiError(401,"Password incorrect")
+
+    // - generate access and refresh token
+    const {accessToken,refreshToken} = await generateAccessAndRefreshToken(user._id)
+
+    // - send secure cookies
+    
+    // upar wala bhi to user le sakte the 
+    // Hn lekin usmein refresh token dalke kaam karna padta kyunki user pehle wala tokens banne se pehle liya tha na isliye ni samjhe??
+    const loggedInUser= await User.findById(user._id).select("-password -refreshToken")
+
+    // cookie options
+
+    // in dono se frontend se koi cookies mein changes ni kar sakta
+    const options = {
+        httpOnly : true,
+        secure: true
+    }
+    
+    // return the response
+    return res
+    .status(200)
+    .cookie('accessToken',accessToken,options)
+    .cookie('refreshToken',refreshToken,options)
+    .json(
+        new ApiResponse(200,{
+            user: loggedInUser,accessToken,refreshToken
+        },"User Logged in Successfully")
+    )
+})
+
+// Logout User
+const logoutUser = asyncHandler( async (req,res)=>{
+
+    // lekin is route mein req mein tum user ki detail to bhejoge ni???
+    // Ye access kaise mila tumhare middleware se jo tumne lagaya hai routes mein
+    // uski last mein req mein add kiya hai na
+
+    const userId = req.user._id
+
+    const updatedUser = User.findByIdAndUpdate(
+        userId,
+        {
+            $set: {
+                refreshToken: undefined
+
+                //undefined se field hat jaegi
+                //null se field rahegi without data
+            }
+        },
+        {
+            new: true
+        }
+    )
+
+
+    // ek aur variation hai ( best Practice)
+
+    const _updatedUser = await User.findByIdAndUpdate(
+    userId,
+    { $unset: { refreshToken: 1 } },
+    { new: true } // ✅ Updated document return karega
+    );
+
+    // What does new do
+    console.log(updatedUser);
+    // Output: { _id: "123", name: "John", email: "john@example.com" }
+    // ❌ refreshToken field nahi hogi
+
+
+    const options = {
+        httpOnly : true,
+        secure: true
+    }
+
+    return res
+    .status(200)
+    .clearCookie('accessToken',options)
+    .clearCookie('refreshToken',options)
+    .json(new ApiResponse(200,{},"User Logged Out"))
+})
+export {
+    registerUser,
+    loginUser,
+    logoutUser
+}
