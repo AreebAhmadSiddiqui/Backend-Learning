@@ -3,7 +3,7 @@ import { ApiError } from '../utils/ApiError.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import {asyncHandler} from '../utils/asyncHandler.js'
 import {uploadOnCloudinary} from '../utils/cloudinary.js';
-
+import jwt from 'jsonwebtoken'
 
 // Generate access and refreshtoken
 
@@ -218,8 +218,58 @@ const logoutUser = asyncHandler( async (req,res)=>{
     .clearCookie('refreshToken',options)
     .json(new ApiResponse(200,{},"User Logged Out"))
 })
+
+
+// access token refresh karne ke liye
+const refreshAccessToken = asyncHandler(async (req,res) => {
+    // get the refresh token
+    const incomingRefreshToken = req.cookies.refreshToken || 
+    res.body.refreshToken // for mobile
+
+    if(!incomingRefreshToken) throw new ApiError(401,"Unauthorized Request")
+
+    try {
+        // verify token
+        const decodedToken = jwt.verify(incomingRefreshToken,process.env.REFRESH_TOKEN_SECRET)
+    
+        // Get the user
+        const userId = decodedToken?._id
+        const user= await User.findById(userId)
+    
+        if(!user) throw new ApiError(401,"Invalid Refresh Token")
+    
+        
+        // Check if the refresh token is still valid 
+        if(incomingRefreshToken !== user?.refreshToken){
+            throw new ApiError(401,"Refresh token is expired or used")
+        }
+    
+        // All verifications done
+        // Generate new Tokens
+    
+        const options = {
+            httpOnly: true, // javascript se access ni
+            secure:true // only https request
+        }
+    
+        const {accessToken,newRefreshToken} = await generateAccessAndRefreshToken(user?._id)
+    
+        return res
+        .status(200)
+        .cookie('accessToken',accessToken,options)
+        .cookie('refreshToken',newRefreshToken,options)
+        .json(new ApiResponse(
+            200,
+            {accessToken,refreshToken: newRefreshToken},
+            "Access token refreshed"
+        ))
+    } catch (error) {
+        throw new ApiError(401,error?.message || "Some issue in refreshing the access token")
+    }
+})
 export {
     registerUser,
     loginUser,
-    logoutUser
+    logoutUser,
+    refreshAccessToken
 }

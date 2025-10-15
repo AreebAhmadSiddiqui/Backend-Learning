@@ -926,6 +926,126 @@ res.json({
 ```
 
 
-# Video 17 ( Testing of Login and Logout)
+# Video 17 ( Testing of Login and Logout and info about access and refresh token)
 
-- 
+- Access token aur refresh token ka concept hi hai isliye taki user ko baar baar login na karna pade
+- Refresh Token is ( sessions storage )
+- How it works?
+    - Man lo access token expires
+    - To frontend wale ko to 401( ya jo bhi error ho ) error aega
+    - To wo user ko ye kahne ke bajae ki ap firse login karo
+    - wo refresh token client se utha ke server ko bhej sakta hia
+    - ab wahan ye check ho sakta hai ki dono token same hai agar han to access de do ( refresh (naya)  access token aur refresh token bana do )
+    - agar ni hai unauthorized access kar do
+
+- To frontend wale ko endpoint bhi to chahiye hoga na ye refresh karane ke liye
+
+### Myth ( cookie se tokens delete ho jate hai after expiry)
+```jsx
+
+Myth:
+"Token expire hote hi cookie automatically delete ho jaata hai"
+
+Reality:
+Cookie tab tak browser mein rehta hai jab tak manually delete nahi karte
+
+🔍 Actual Scenario:
+Cookie Expiry Structure:
+javascript
+// Example cookie
+{
+    name: "accessToken",
+    value: "eyJhbGciOiJIUzI1NiIs...",
+    expires: "2023-12-31T23:59:59Z",  // ✅ Ye decide karta hai expiry
+    httpOnly: true,
+    secure: true
+}
+
+Kya Hota Hai:
+Token Expire Hota Hai (Backend pe validation fail)
+Cookie Browser Mein Rehta Hai (Physically present)
+Server Reject Karta Hai Request ko
+
+jwt.verify() - time bhi match karta hai
+
+```
+
+### Important question ( Refresh aur Access dono kyun de dete user ko cookie mein)
+
+```jsx
+
+Bahut acha sawal hai bhai! Ye concept thoda tricky hai, main simple example se samjhaata hoon:
+
+🍕 Real Life Example:
+Socho tumhare paas hai:
+
+Access Token = Office Entry Pass (1 din valid)
+
+Refresh Token = Permanent ID Card (1 saal valid)
+
+🤔 Dono Kyun Chahiye?
+Scenario 1: Sirf Access Token Hota Toh:
+javascript
+// Access token expire ho gaya
+// User ko fir se LOGIN karna padega
+// Har 15-30 minute baar login? ❌ Bad UX
+Scenario 2: Dono Tokens Hain Toh:
+javascript
+// Access token expire ho gaya
+// Refresh token use karo naya access token le lo
+// User automatically logged in rehta hai ✅ Smooth UX
+🔄 Actual Flow:
+1. Login Ke Time:
+javascript
+// Server response:
+{
+    accessToken: "eyJ...",    // 15 minutes valid
+    refreshToken: "eyJ..."    // 7 days valid  
+}
+2. Access Token Expire Hota Hai:
+javascript
+// Client: "Bhai, data chahiye"
+// Server: "Tera access token expire ho gaya"
+3. Refresh Token Kaam Aata Hai:
+javascript
+// Client refresh endpoint ko call karta hai
+// Refresh token validate hota hai
+// Naya access token mil jaata hai
+// User ko pata bhi nahi chalta ✅
+
+```
+
+### Lekin refresh token ka to access ni milna chahiye kisi ko bhi to fir kyun de rhe user ko??
+
+```jsx
+
+🔒 Refresh Token Security Measures:
+1. httpOnly Cookies - Biggest Protection
+javascript
+const options = {
+    httpOnly: true,    // ✅ JavaScript access NAHI kar sakta
+    secure: true,      // ✅ HTTPS only
+    sameSite: 'strict' // ✅ CSRF protection
+}
+Ye matlab:
+
+Browser mein stored hai but
+
+JavaScript directly access nahi kar sakta
+
+XSS attacks se relatively safe
+
+2. Short Expiry for Access Token
+javascript
+// Access Token: 15-30 minutes
+// Refresh Token: 7-30 days  
+Risk minimization: Agar refresh token chori bhi ho gaya, toh access token quickly expire ho jaata hai.
+
+3. Refresh Token Rotation
+javascript
+// Har baar refresh karte time:
+const {accessToken, newRefreshToken} = await generateTokens(userId)
+// ↑ Naya refresh token bhi generate ho raha hai!
+Purana refresh token invalid ho jaata hai!
+
+```
