@@ -1049,3 +1049,11 @@ const {accessToken, newRefreshToken} = await generateTokens(userId)
 Purana refresh token invalid ho jaata hai!
 
 ```
+
+# Video 18 ( More Controllers )
+
+- Creating a subscriber model
+- Also basic functions which are definitely there in almost every projects
+
+#### Note : 
+- Hamesha files update wagerah naya controller banake karna chahiye
