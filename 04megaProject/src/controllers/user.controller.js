@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { User } from '../models/user.models.js';
 import { ApiError } from '../utils/ApiError.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
@@ -383,6 +384,171 @@ const updateUserCoverImage=asyncHandler(async (req,res)=>{
     .json(new ApiResponse(200,user,"Cover Image Updated Successfully"))
 })
 
+
+// User profile page ( subscriber, subscribed wo wala page)
+
+const getUserChannelProfile = asyncHandler(async (req,res)=>{
+    const {username} = req.params
+
+    if(!username?.trim()) throw new ApiError(400,"Username is missing")
+
+    // aggregation piplines   
+
+    // normally array return hota hai
+    const aggregatedChannel = await User.aggregate([
+        {
+            $match:{
+                username: username?.toLowerCase()
+            }
+        },
+        {
+            // array diya
+            $lookup:{ // sirf document aya hai abhi
+                from:'subscriptions',  // subscriptions model se
+                localField:'_id', // channel ki ID
+                // wo documents jinmein channel current banda hai
+                foreignField:'channel',  // subscriptions mein channel field
+                as: 'subscribers'  // output array ka naam
+            }
+        },
+
+        // kuch aisa hoga
+
+        // {
+        //   _id: "channel123",
+        //   name: "Tech Channel",
+        //   subscribers: [                    // Yeh array $lookup se aaya
+        //     { subscriber: "user1" },
+        //     { subscriber: "user2" }, 
+        //     { subscriber: "user3" }
+        //     // ...
+        //   ]
+        // }
+        {
+            // array diya
+            $lookup:{  // sirf document aya hai abhi
+                from:'subscriptions',
+                localField:'_id',
+                // wo documents jinmein subscriber current banda hai
+                foreignField:'subscriber',
+                as: 'subscribedTo'
+            }
+        },
+        // Add these values to the document ( additional fields) ( count ke saath)
+        {
+            $addFields:{
+                subscribersCount:{
+                    // count karne ke liye
+                    $size: '$subscribers'
+                },
+                channelSubscribedToCount:{
+                    $size: '$subscribedTo'
+                },
+                isSubscribed:{
+                    $cond: {
+                        // ab ham dekh rha kya ye req.user wala banda is subscribers.subscriber array main hai ya nahi
+                        if: {$in: [req.user?._id,'$subscribers.subscriber']},
+                        then: true,
+                        else: false
+                    }
+                }
+            }
+        },
+        {
+            // Jab specific cheezein deni ho
+            $project: {
+                fullName: 1,
+                username: 1,
+                subscribersCount: 1,
+                channelSubscribedToCount:1,
+                isSubscribed:1,
+                avatar:1,
+                coverImage:1,
+                email
+            }
+        }
+
+    ])
+
+    // console.log(aggregatedChannel);
+
+    if(!aggregatedChannel?.length){
+        throw new ApiError(404,"Channel Does not Exist")
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200,aggregatedChannel[0],"User channel fetched successfully")
+    )
+})
+
+
+// Watch History
+const getWatchHistory = asyncHandler ( async (req,res)=>{
+    const user= await User.aggregate([
+        {   
+            // user find karo
+            $match:{
+                _id: new mongoose.Types.ObjectId(req.user?._id)
+            }
+        },
+        {
+            $lookup:{
+                from: 'videos',
+                localField:'watchHistory',
+                foreignField:'_id',
+                as : 'watchHistory',
+
+                // sub piplines
+                pipeline:[
+                    {
+                        $lookup:{
+                            from:'users',
+                            localField:'owner',
+                            foreignField:'_id',
+                            as : 'owners',
+
+                            // Main owner wala data le to aya lekin sab ni chahiye bas ye 3 cheezein hi chahiye to ye de do
+                            pipeline:[
+                                {
+                                    $project:{
+                                        fullName:1,
+                                        username:1,
+                                        avatar:1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+
+                    // purely optional
+                    {
+                        $addFields:{
+                            owner:{
+                                // first element
+                                $first: '$owner'
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ])
+
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            user[0].watchHistory,
+            "Watch history fethced successfully"
+        )
+    )
+})
+
+
 export {
     registerUser,
     loginUser,
@@ -392,5 +558,7 @@ export {
     getCurrentUser,
     updateUserAvatar,
     updateAccountDetails,
-    updateUserCoverImage
+    updateUserCoverImage,
+    getUserChannelProfile,
+    getWatchHistory
 }

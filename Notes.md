@@ -1052,8 +1052,375 @@ Purana refresh token invalid ho jaata hai!
 
 # Video 18 ( More Controllers )
 
-- Creating a subscriber model
+- Creating a subscriber model ( more detail in next lession)
 - Also basic functions which are definitely there in almost every projects
 
 #### Note : 
-- Hamesha files update wagerah naya controller banake karna chahiye
+- Hamesha files update wagerah naya controller banake karna chahiye ( good practice)
+
+# Video 19 ( Subscription Schema )
+
+- **Iski kahani samjho**
+- ek banda aya user1 aur wo subscribe kiya channel1 ko
+- to aisa structure bana {subscriber: user1, channel: channe1} aise hi bahut sare documents banenge ( hame jab bhi koi count karna hoga (subscriber ka ya fir maine kis kis ko subscribe kiya) to ham ye documents ko count kar lenge)
+- Isse ham wo array of subcribers banane se bach jaenge
+- ( array wali approach ek user ke multiple subscribers ho sakte hai (array of subscriber))
+- Lekin khud socho millions of subscriber bhi to hote hai to db operations costly honge
+- Doosra ye bhi agar mujhe ye pata lagana ho ki maine kis kis channel ko subscriber kar rkha hai to band baj jaegi search karte karte
+
+![subscription-model](images/subscription-model.png)
+
+
+- Count of user jisne ek x channel subsribe kiya hai ?
+    - count all the documents whose channel is x
+- Count of channels jinko x ne subscribe kiya hai?
+    - count all the documents whose subscriber is x
+
+# Video 20 ( Aggregation Pipelines )
+
+- Aggregation Pipelines in MongoDB ek powerful feature hai jo data processing aur transformation ke liye use hota hai. Think of it as data processing assembly line jahan data multiple stages se guzarta hai.
+
+- Ye ek sequence of operations hai jo documents par apply hote hai, jaise assembly line mein product banate time har stage par kuch modification hoti hai.
+
+- Agar apke paas ek stage mein x doucments hai to doosri stage mein x documents hi uska source ka kaam karengi
+
+- Syntax User.aggregate([{stage1},{stage2},{stage3} etcc])
+
+#### Some common stage methods
+
+```jsx
+
+1. $match - Filter Documents
+
+// SQL WHERE clause jaise
+db.users.aggregate([
+  { $match: { 
+    age: { $gte: 18 }, 
+    status: "active" 
+  }}
+])
+Use Case: Specific documents filter karna
+
+2. $group - Group + Calculations
+
+db.orders.aggregate([
+  { $group: {
+    _id: "$category",
+    total: { $sum: "$amount" },
+    count: { $sum: 1 }
+  }}
+])
+Use Case: Reports, analytics, summaries banane ke liye
+
+3. $project - Fields Select/Modify
+
+db.users.aggregate([
+  { $project: {
+    name: 1,
+    email: 1,
+    year: { $year: "$createdAt" }
+  }}
+])
+Use Case: Specific fields show karna, new fields banana
+
+4. $lookup - Join Collections
+
+db.orders.aggregate([
+  { $lookup: {
+    from: "users",
+    localField: "userId",
+    foreignField: "_id", 
+    as: "userDetails"
+  }}
+])
+Use Case: Multiple collections ko combine karna
+
+5. $sort - Sorting
+
+db.products.aggregate([
+  { $sort: { price: -1 } } // DESC order
+])
+Use Case: Results ko arrange karna
+
+Real Example - In 5 Methods Ka Combination:
+
+db.orders.aggregate([
+  // Step 1: Sirf completed orders filter karo
+  { $match: { status: "completed" } },
+  
+  // Step 2: Orders ke saath customer ki details join karo
+  { $lookup: {
+      from: "users",
+      localField: "customerId", 
+      foreignField: "_id",
+      as: "customer"
+    }
+  },
+  
+  // Step 3: City ke hisaab se group karo aur total sales calculate karo
+  { $group: {
+      _id: "$customer.city",  // Customer ki city se group
+      totalSales: { $sum: "$amount" }  // Har city ka total amount
+    }
+  },
+  
+  // Step 4: Total sales ke hisaab se descending order mein sort karo
+  { $sort: { totalSales: -1 } },
+  
+  // Step 5: Final output format karo - clean structure
+  { $project: {
+      city: "$_id",        // _id ko city naam do
+      totalSales: 1,       // totalSales show karo
+      _id: 0               // Default _id hide karo
+    }
+  }
+])
+
+```
+
+#### Code Explanation
+
+```jsx
+
+Stage-wise Explanation:
+
+Stage 1: $match - Find Channel
+
+{
+    $match: {
+        username: username?.toLowerCase()
+    }
+}
+Kya karta hai: Username se specific channel/user find karta hai
+
+Stage 2: $lookup - Get Subscribers
+
+{
+    $lookup: {
+        from: 'subscriptions',
+        localField: '_id',          // Channel ki ID
+        foreignField: 'channel',    // Subscriptions mein channel field
+        as: 'subscribers'           // Output: Channel ke sab subscribers
+    }
+}
+Kya karta hai: Channel ko kis-kis ne subscribe kiya hai - yeh list laata hai
+
+Stage 3: $lookup - Get Subscribed Channels
+
+{
+    $lookup: {
+        from: 'subscriptions',
+        localField: '_id',          // Channel ki ID  
+        foreignField: 'subscriber', // Subscriptions mein subscriber field
+        as: 'subscribedTo'          // Output: Ye channel kis-kis ko subscribe karta hai
+    }
+}
+Kya karta hai: Yeh channel khud kis-kis channels ko subscribe karta hai - yeh list laata hai
+
+Stage 4: $addFields - Add Calculated Fields
+
+{
+    $addFields: {
+        subscribersCount: {
+            $size: '$subscribers'  // Subscribers array ki length
+        },
+        channelSubscribedToCount: {
+            $size: '$subscribedTo' // SubscribedTo array ki length  
+        },
+        isSubscribed: {
+            $cond: {
+                if: { $in: [req.user?._id, '$subscribers.subscriber'] },
+                then: true,    // Current user ne subscribe kiya hai
+                else: false    // Current user ne subscribe nahi kiya
+            }
+        }
+    }
+}
+Kya karta hai: 3 naye fields add karta hai:
+
+subscribersCount: Kitne subscribers hai
+
+channelSubscribedToCount: Ye channel kitne channels ko subscribe karta hai
+
+isSubscribed: Kya current user ne is channel ko subscribe kiya hai
+
+Stage 5: $project - Select Final Fields
+
+{
+    $project: {
+        fullName: 1,
+        username: 1, 
+        subscribersCount: 1,
+        channelSubscribedToCount: 1,
+        isSubscribed: 1,
+        avatar: 1,
+        coverImage: 1,
+        email: 1
+    }
+}
+Kya karta hai: Sirf required fields show karta hai, baaki hide kar deta hai
+
+```
+
+# Video 21 ( Sub Pipelines - Watch History )
+
+- Dekho hamare models jo bane hai usmein
+- user mein array of watch history hai thik
+- tum lookup karke videos ka array la sakte ho good
+- lekin tumhare videos mein owner field bhi to hai to tumhe ek aur lookup karna padega usi ke andar 
+- yani tumhar arrays do baar lookup ke baad return honge ek baar mein ni hoga
+
+user 
+    videos
+        user(owner)
+
+#### Interview Question
+- req.user?._id se hame kya milta hai ?? mongodb wali id?
+- Nahi string milti hai lekin mongoose backend mein sab kar deta hai
+- lekin aggregation pipeline mein create karni padti hai mongoose se id ObjectId('someid')
+- new mongoose.Types.ObjectId(req.user?._id)
+```jsx
+Problem:
+
+// Yeh kaam nahi karega
+$match: { _id: req.user?._id }
+Kyun?
+
+req.user?._id typically string format mein hota hai
+MongoDB mein _id field ObjectId format mein hoti hai
+String ≠ ObjectId (type mismatch)
+
+Example:
+
+// Frontend/API se aata hai (string)
+req.user._id = "507f1f77bcf86cd799439011"
+
+// Database mein stored hai (ObjectId)  
+_id: ObjectId("507f1f77bcf86cd799439011")
+Solution:
+
+// String ko ObjectId mein convert karo
+$match: { _id: new mongoose.Types.ObjectId(req.user?._id) }
+
+
+// Agar directly User.find() use karte toh:
+const user = await User.findById(req.user._id);
+// Mongoose internally convert karta hai
+
+// But aggregation pipeline mein manually karna padta hai
+// kyunki aggregation directly MongoDB driver use karta hai
+```
+
+
+### Watch history wala code with example
+
+```jsx
+
+Stage 1: $match - User Find Karo
+
+{
+    $match: {
+        _id: new mongoose.Types.ObjectId(req.user?._id)
+    }
+}
+Example Input:
+
+
+// Users collection
+[
+    {_id: "user123", username: "john", watchHistory: ["video1", "video2", "video3"]}
+]
+Output: Sirf current user ka document milta hai
+
+Stage 2: $lookup - Watch History Bharo
+
+{
+    $lookup: {
+        from: 'videos',
+        localField: 'watchHistory',  // user ke watchHistory array mein video IDs
+        foreignField: '_id',         // videos collection ke _id se match karo
+        as: 'watchHistory',          // purana array replace ho jayega
+        pipeline: [/* sub-pipeline */]
+    }
+}
+Ab tak ka Output:
+
+
+{
+    _id: "user123",
+    username: "john",
+    watchHistory: [
+        {_id: "video1", title: "Video 1", owner: "owner123"},
+        {_id: "video2", title: "Video 2", owner: "owner456"},
+        {_id: "video3", title: "Video 3", owner: "owner123"}
+    ]
+}
+Sub-Pipeline Stage 2.1: $lookup - Video Owners Ka Data Bharo
+
+{
+    $lookup: {
+        from: 'users',
+        localField: 'owner',        // video ka owner ID
+        foreignField: '_id',        // users collection ke _id se match
+        as: 'owners',               // owners array banega
+        pipeline: [
+            {
+                $project: {
+                    fullName: 1,
+                    username: 1,
+                    avatar: 1
+                }
+            }
+        ]
+    }
+}
+Ab Output:
+
+
+{
+    _id: "user123",
+    username: "john", 
+    watchHistory: [
+        {
+            _id: "video1", 
+            title: "Video 1", 
+            owner: "owner123",
+            owners: [{fullName: "Raj Sharma", username: "raj", avatar: "raj.jpg"}] // owner ka details
+        },
+        {
+            _id: "video2",
+            title: "Video 2",
+            owner: "owner456", 
+            owners: [{fullName: "Priya Singh", username: "priya", avatar: "priya.jpg"}]
+        }
+    ]
+}
+Sub-Pipeline Stage 2.2: $addFields - Owner Ko Simplify Karo
+{
+    $addFields: {
+        owner: {
+            $first: '$owners'  // owners array ka first element lelo
+        }
+    }
+}
+Final Output:
+
+
+{
+    _id: "user123",
+    username: "john",
+    watchHistory: [
+        {
+            _id: "video1",
+            title: "Video 1", 
+            owner: {fullName: "Raj Sharma", username: "raj", avatar: "raj.jpg"} // direct object
+        },
+        {
+            _id: "video2", 
+            title: "Video 2",
+            owner: {fullName: "Priya Singh", username: "priya", avatar: "priya.jpg"}
+        }
+    ]
+}
+
+```
