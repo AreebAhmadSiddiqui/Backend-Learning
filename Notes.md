@@ -1050,6 +1050,56 @@ Purana refresh token invalid ho jaata hai!
 
 ```
 
+### Hame pata access token kuch minute baad expire ho jaega to kya hame react mein kuch ( setInterval type ka karna chahiye taki access token expire hote hi refresh kara lun main) ??
+
+- Ni bhai ek functionality hai axios ki axios.interceptor functionality ka wo kisi bhi error pe automatically run kar sakta hai
+- Bahut important tool hai API request/response ke liye
+- Bahut facility deta hai ( req ke pehle ye karo, success res ke baad ye karo)
+- automatic retry if server responds 500 aisa karke bahut cheezein akrta hai
+
+```jsx
+
+Frontend Interceptor Function
+// utils/axiosInterceptor.js
+let isRefreshing = false;
+
+const refreshAuthToken = async () => {
+    if (isRefreshing) return;
+    isRefreshing = true;
+    
+    try {
+        const refreshToken = localStorage.getItem('refreshToken');
+        const response = await axios.post('/api/refresh-token', { refreshToken });
+        
+        const newAccessToken = response.data.accessToken;
+        localStorage.setItem('accessToken', newAccessToken);
+        return newAccessToken;
+    } catch (error) {
+        // Logout user if refresh fails
+        logoutUser();
+    } finally {
+        isRefreshing = false;
+    }
+};
+3. Axios Interceptor Setup
+
+// Yeh automatically 401 pe chalega, but endpoint humara hi hai
+axios.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+        if (error.response?.status === 401) {
+            // Yahan humara refresh-token endpoint call hoga
+            const newToken = await refreshAuthToken();
+            
+            // Retry original request with new token
+            error.config.headers.Authorization = `Bearer ${newToken}`;
+            return axios.request(error.config);
+        }
+        return Promise.reject(error);
+    }
+);
+```
+
 # Video 18 ( More Controllers )
 
 - Creating a subscriber model ( more detail in next lession)

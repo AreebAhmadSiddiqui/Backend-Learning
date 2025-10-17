@@ -1,5 +1,5 @@
 import {Router} from 'express'
-import { loginUser, logoutUser , refreshAccessToken, registerUser} from '../controllers/user.controller.js'
+import { changeCurrentPassword, getCurrentUser, getUserChannelProfile, getWatchHistory, loginUser, logoutUser , refreshAccessToken, registerUser, updateAccountDetails, updateUserAvatar, updateUserCoverImage} from '../controllers/user.controller.js'
 import {upload} from '../middlewares/multer.middleware.js'
 import { verifyJWT } from '../middlewares/auth.middleware.js'
 
@@ -29,5 +29,17 @@ router.route('/login').post(loginUser)
 // secured routes ( jismein user logged in hona chahiye)
 router.route("/logout").post(verifyJWT,logoutUser)
 router.route('/refresh-token').post(refreshAccessToken)
+router.route('/change-password').post(verifyJWT,changeCurrentPassword)
+router.route('/current-user').get(verifyJWT,getCurrentUser)
 
+// we are using patch taki sab na update ho
+router.route('/update-account').patch(verifyJWT,updateAccountDetails)
+router.route('/change-avatar').patch(verifyJWT,upload.single('avatar'),updateUserAvatar)
+router.route('/change-coverimg').patch(verifyJWT,upload.single('coverImg'),updateUserCoverImage)
+
+
+// params wale route
+router.route("/channel/:username").get(verifyJWT,getUserChannelProfile)
+
+router.route('/watch-history').get(verifyJWT,getWatchHistory)
 export default router
