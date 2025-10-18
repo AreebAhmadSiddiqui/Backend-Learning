@@ -35,7 +35,7 @@ router.route('/current-user').get(verifyJWT,getCurrentUser)
 // we are using patch taki sab na update ho
 router.route('/update-account').patch(verifyJWT,updateAccountDetails)
 router.route('/change-avatar').patch(verifyJWT,upload.single('avatar'),updateUserAvatar)
-router.route('/change-coverimg').patch(verifyJWT,upload.single('coverImg'),updateUserCoverImage)
+router.route('/change-coverimg').patch(verifyJWT,upload.single('coverImage'),updateUserCoverImage)
 
 
 // params wale route
